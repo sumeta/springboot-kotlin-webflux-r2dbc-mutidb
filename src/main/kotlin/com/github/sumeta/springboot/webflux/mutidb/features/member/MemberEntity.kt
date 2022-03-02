@@ -4,7 +4,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 
 @Table(value = "MEMBER")
-class MemberEntity (
+data class MemberEntity (
     @Id
     val id: String,
     val firstName: String,
