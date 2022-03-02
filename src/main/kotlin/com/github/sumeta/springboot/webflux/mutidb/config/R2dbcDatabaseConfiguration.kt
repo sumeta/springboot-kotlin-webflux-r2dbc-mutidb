@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.r2dbc.core.DatabaseClient
+import org.springframework.data.r2dbc.core.DefaultReactiveDataAccessStrategy
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.data.r2dbc.dialect.SqlServerDialect
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories
 
 
@@ -40,6 +43,12 @@ class R2dbcDatabaseConfiguration(
         return DatabaseClient.create(connectionFactory)
     }
 
+    @Bean("memberDatabaseClientTemplate")
+    fun memberDatabaseClientTemplate(@Qualifier("memberDatabaseClient") databaseClient: DatabaseClient): R2dbcEntityTemplate {
+        val strategy = DefaultReactiveDataAccessStrategy(SqlServerDialect.INSTANCE)
+        return R2dbcEntityTemplate(databaseClient, strategy)
+    }
+
     @Bean("customerConnectionFactory")
     fun customerConnectionFactory(): ConnectionFactory {
         val options = ConnectionFactoryOptions.parse(customerUrl)
@@ -54,4 +63,11 @@ class R2dbcDatabaseConfiguration(
     fun customerDatabaseClient(@Qualifier("customerConnectionFactory") connectionFactory: ConnectionFactory): DatabaseClient {
         return DatabaseClient.create(connectionFactory)
     }
+
+    @Bean("customerDatabaseClientTemplate")
+    fun customerDatabaseClientTemplate(@Qualifier("customerDatabaseClient") databaseClient: DatabaseClient): R2dbcEntityTemplate {
+        val strategy = DefaultReactiveDataAccessStrategy(SqlServerDialect.INSTANCE)
+        return R2dbcEntityTemplate(databaseClient, strategy)
+    }
+
 }

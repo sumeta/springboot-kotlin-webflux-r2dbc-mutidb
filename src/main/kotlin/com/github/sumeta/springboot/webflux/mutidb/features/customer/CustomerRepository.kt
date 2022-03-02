@@ -1,24 +1,24 @@
 package com.github.sumeta.springboot.webflux.mutidb.features.customer
 
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.data.r2dbc.core.DatabaseClient
-import org.springframework.data.r2dbc.core.awaitFirstOrNull
-import org.springframework.data.r2dbc.core.awaitOneOrNull
+import org.springframework.data.r2dbc.core.*
 import org.springframework.data.relational.core.query.Criteria
+import org.springframework.data.relational.core.query.Query
 import org.springframework.stereotype.Repository
 
 @Repository
-class CustomerRepository( @Qualifier("customerDatabaseClient") private val databaseClient: DatabaseClient) {
+class CustomerRepository(
+    @Qualifier("customerDatabaseClientTemplate") private val r2dbcEntityTemplate: R2dbcEntityTemplate
+) {
 
-    suspend fun get(id:String) =
-            databaseClient.select().from(CustomerEntity::class.java)
-                    .matching(Criteria.where(CustomerEntity::identifier.name) .`is`(id))
-                    .fetch().awaitFirstOrNull()
+    suspend fun get(id: String) =
+        r2dbcEntityTemplate.select(
+            Query.query(Criteria.where(CustomerEntity::identifier.name).`is`(id)),
+            CustomerEntity::class.java
+        ).awaitSingle()
 
     suspend fun add(customerEntity: CustomerEntity) =
-        databaseClient.insert()
-            .into(CustomerEntity::class.java)
-            .using(customerEntity)
-            .fetch()
-            .awaitOneOrNull()
+        r2dbcEntityTemplate.insert(CustomerEntity::class.java).usingAndAwait(customerEntity)
+
 }
